@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import '../../App.css';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { getProducts } from "../../db/db.js";
+import { Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
 
-const ItemDetailContainer = () => {
+const ItemDetailContainer = ({ addToCart }) => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
-    const fetchProduct = new Promise((resolve) => {
-      setTimeout(() => {
-        const allProducts = [
-          { id: 1, category: 'mates', name: 'Mate de madera', description: 'Un mate hecho de madera de alta calidad.' },
-          { id: 2, category: 'bombillas', name: 'Bombilla de acero', description: 'Bombilla de acero inoxidable.' },
-          { id: 3, category: 'accesorios', name: 'Bolsa para mate', description: 'Bolsa de transporte para mate.' },
-        ];
-        resolve(allProducts.find(product => product.id === parseInt(productId)));
-      }, 500);
-    });
-
-    fetchProduct.then((result) => setProduct(result));
+    const fetchProduct = async () => {
+      const products = await getProducts();
+      const selectedProduct = products.find((prod) => prod.id === productId);
+      setProduct(selectedProduct);
+    };
+    fetchProduct();
   }, [productId]);
 
-  if (!product) return <p>Cargando...</p>;
+  if (!product) {
+    return <Typography>Cargando producto...</Typography>;
+  }
 
   return (
-    <div className="item-detail-container">
-      <h2 className="item-title">{product.name}</h2>
-      <p className="item-description">{product.description}</p>
-      <button className="button" onClick={() => alert("Producto agregado al carrito")}>
-        Agregar al Carrito
-      </button>
-    </div>
+    <Card sx={{ maxWidth: 600, margin: "auto", marginTop: 4 }}>
+      <CardMedia component="img" height="400" image={product.image} alt={product.name} />
+      <CardContent>
+        <Typography variant="h5">{product.name}</Typography>
+        <Typography variant="body2" color="textSecondary">{product.description}</Typography>
+        <Typography variant="h6">${product.price}</Typography>
+        <Button variant="contained" color="primary" onClick={() => addToCart(product)}>
+          Agregar al carrito
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
